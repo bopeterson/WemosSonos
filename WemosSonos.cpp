@@ -97,6 +97,10 @@ void WemosSonos::deviceInfo(int device) {
     deviceInfoRaw(url,device);
     
     filter("<roomName>","</roomName>");
+    
+    
+    maybe copy _filtered to respons and filter again? no, maybe special made thing
+    
     Serial.println(_filtered);
     
     
