@@ -26,10 +26,8 @@ class WemosSonos {
     
     
     
-    void deviceInfo(int device);
+    String roomName(int device);
 
-    void deviceInfoRaw(const char *url,int device);
-    //xxx change not void not pub
   
 
   private:
@@ -43,6 +41,7 @@ class WemosSonos {
     void filter(const char *starttag,const char *endtag);
     int string2int(const char *s);
     bool addIp(IPAddress ip);
+    void deviceInfoRaw(const char *url,int device);
 };
 
 #endif
