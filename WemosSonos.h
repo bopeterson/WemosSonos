@@ -20,7 +20,7 @@ class WemosSonos {
     byte getVolume(int device);
     void setVolume(byte vol,int device);
     String getTransportInfo(int device);
-    int discoverSonos();
+    int discoverSonos(int timeout);
     int getNumberOfDevices();
     IPAddress getIpOfDevice(int device);
     

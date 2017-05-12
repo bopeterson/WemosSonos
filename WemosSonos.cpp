@@ -23,12 +23,14 @@ void WemosSonos::play(int device) {
 
 
 byte WemosSonos::getVolume(int device) {
+    //returns zero at timeout
     const char url[] = "/RenderingControl/Control";
     const char service[] = "RenderingControl:1";
     const char action[] = "GetVolume";
     const char arguments[] = "<InstanceID>0</InstanceID><Channel>Master</Channel>";
     sonosAction(url,service,action,arguments,device);
     filter("<CurrentVolume>","</CurrentVolume>");
+    
     return string2int(_filtered);
 }
 
@@ -54,6 +56,7 @@ void WemosSonos::removeAllTracksFromQueue(int device) {
 }
 
 int WemosSonos::string2int(const char *s) {
+    //returns zero if string is empty
     char *ptr; //not used but needed in strtol
     int ret = strtol(s, &ptr, 10);      
     return ret;
@@ -271,16 +274,18 @@ void WemosSonos::sonosAction(const char *url, const char *service, const char *a
     }  
 }
 
-int WemosSonos::discoverSonos(){
+int WemosSonos::discoverSonos(int timeout){
+    //timeout in seconds
     _numberOfDevices=0;
     WiFiUDP Udp;
     Udp.begin(1900);
     IPAddress sonosIP;
     bool timedOut = false;
-    unsigned long timeLimit = 15000;
+    unsigned long timeLimit = timeout*1000;
+    unsigned long innerLoopTimeLimit = 3000;
     unsigned long firstSearch = millis();
     do {
-        Serial.println("Sending M-SEARCH multicast");
+        //Serial.println("Sending M-SEARCH multicast");
         Udp.beginPacketMulticast(IPAddress(239, 255, 255, 250), 1900, WiFi.localIP());
         Udp.write("M-SEARCH * HTTP/1.1\r\n"
             "HOST: 239.255.255.250:1900\r\n"
@@ -290,37 +295,28 @@ int WemosSonos::discoverSonos(){
         Udp.endPacket();
         unsigned long lastSearch = millis();
 
-        while((millis() - lastSearch) < 5000){
+        while(((millis() - lastSearch) < innerLoopTimeLimit) && ((millis() - firstSearch) < timeLimit)){
             int packetSize = Udp.parsePacket();
             if(packetSize){
                 char packetBuffer[255];
-                //Serial.print("Received packet of size ");
-                //Serial.println(packetSize);
-                //Serial.print("From ");
                 sonosIP = Udp.remoteIP();
 
-                //xxx if new IP, it should be put in an array
-
+                //if new IP, it should be put in an array
                 addIp(sonosIP);
-                //found = true; 
-                Serial.print(sonosIP);
-                Serial.print(", port ");
-                Serial.println(Udp.remotePort());
+                //Serial.print(sonosIP);
+                //Serial.print(", port ");
+                //Serial.println(Udp.remotePort());
                 
                 // read the packet into packetBufffer
                 int len = Udp.read(packetBuffer, 255);
                 if (len > 0) {
                     packetBuffer[len] = 0;
                 }
-                //Serial.println("Contents:");
-                //Serial.println(packetBuffer);
             }
             delay(50);
         }
     } while((millis()-firstSearch)<timeLimit);
-    //if (!found) {
-    //sonosIP.fromString("0.0.0.0"); xxx 
-    //}
+    
     return _numberOfDevices;
 }
 
