@@ -276,7 +276,7 @@ void WemosSonos::sonosAction(const char *url, const char *service, const char *a
 
 int WemosSonos::discoverSonos(int timeout){
     //timeout in seconds
-    _numberOfDevices=0;
+    //_numberOfDevices=0;
     WiFiUDP Udp;
     Udp.begin(1900);
     IPAddress sonosIP;

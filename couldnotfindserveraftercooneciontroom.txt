@@ -1,0 +1,707 @@
+
+compiletime: 12:27:04 May 14 2017
+Saved room name>>><<<
+!!! Could not connect to 
+foooooooooo
+CURRENT STATUS
+Running for:         0:0:15
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:0:30
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+
+trying to connect timed out
+entering main loop
+CURRENT STATUS
+Running for:         0:0:45
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:1:0
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:1:15
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:1:30
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:1:45
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:2:0
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:2:15
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:2:30
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:2:45
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:3:0
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:3:15
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:3:30
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:3:45
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:4:0
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:4:15
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:4:30
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:4:45
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:5:0
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:5:15
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:5:30
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    0
+accessPointStarted:  0
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_NO_SSID_AVAIL
+RSSI:                31 dBm
+SSID:                foooooooooo
+WiFiSSID:            
+Station IP Address:  0.0.0.0
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+button pressed
+PLAY DISABLED
+hold detected
+start scan
+scanning complete
+Starting access point mode with IP address 192.168.4.1
+Connect to configure network and browse to 192.168.4.1
+Trying to start webserver
+Starting webserver
+CURRENT STATUS
+Running for:         0:5:47
+Change to STA in:    299968 ms
+WIFI MODE:           WIFI_AP_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_IDLE_STATUS
+RSSI:                31 dBm
+SSID:                
+WiFiSSID:            foooooooooo
+Station IP Address:  0.0.0.0
+AP IP Address:       192.168.4.1
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:6:2
+Change to STA in:    284997 ms
+WIFI MODE:           WIFI_AP_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_IDLE_STATUS
+RSSI:                31 dBm
+SSID:                
+WiFiSSID:            foooooooooo
+Station IP Address:  0.0.0.0
+AP IP Address:       192.168.4.1
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:6:17
+Change to STA in:    269967 ms
+WIFI MODE:           WIFI_AP_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    0
+WiFi Status:         WL_IDLE_STATUS
+RSSI:                31 dBm
+SSID:                
+WiFiSSID:            foooooooooo
+Station IP Address:  0.0.0.0
+AP IP Address:       192.168.4.1
+MAC address:         18:FE:34:D7:6C:96
+
+handleroot
+handleroot
+has arg ssid
+Connecting to bop
+...handleStatus
+..handleStatus
+...handleStatus
+..handleStatus
+...handleStatus
+
+Connection successful
+handleStatus
+handleRoom
+discover sonos 3
+Trying to stop webserver
+Stopping webserver
+discover sonos in library
+Found devices: 3
+Device 0: 192.168.2.6 Kök
+Device 1: 192.168.2.7 Vardagsrum
+Device 2: 192.168.4.100  *
+Trying to start webserver
+Starting webserver
+discoverReady
+discover sonos 2
+Trying to stop webserver
+Stopping webserver
+discover sonos in library
+Found devices: 3
+Device 0: 192.168.2.7 Vardagsrum
+Device 1: 192.168.2.6 Kök
+Device 2: 192.168.4.100  *
+Trying to start webserver
+Starting webserver
+discoverReady
+CURRENT STATUS
+Running for:         0:8:1
+Change to STA in:    don't change
+WIFI MODE:           WIFI_AP_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    1
+WiFi Status:         WL_CONNECTED
+RSSI:                -64 dBm
+SSID:                bop
+WiFiSSID:            bop
+Station IP Address:  192.168.2.104
+AP IP Address:       192.168.4.1
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:8:15
+Change to STA in:    don't change
+WIFI MODE:           WIFI_AP_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    1
+WiFi Status:         WL_CONNECTED
+RSSI:                -65 dBm
+SSID:                bop
+WiFiSSID:            bop
+Station IP Address:  192.168.2.104
+AP IP Address:       192.168.4.1
+MAC address:         18:FE:34:D7:6C:96
+
+handleRoom
+CURRENT STATUS
+Running for:         0:8:35
+Change to STA in:    don't change
+WIFI MODE:           WIFI_AP_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    1
+WiFi Status:         WL_CONNECTED
+RSSI:                -69 dBm
+SSID:                bop
+WiFiSSID:            bop
+Station IP Address:  192.168.2.104
+AP IP Address:       192.168.4.1
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:8:50
+Change to STA in:    don't change
+WIFI MODE:           WIFI_AP_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    1
+WiFi Status:         WL_CONNECTED
+RSSI:                -73 dBm
+SSID:                bop
+WiFiSSID:            bop
+Station IP Address:  192.168.2.104
+AP IP Address:       192.168.4.1
+MAC address:         18:FE:34:D7:6C:96
+
+handleShowDevices
+Selected device: 1
+Saving settings... done!
+CURRENT STATUS
+Running for:         0:9:5
+Change to STA in:    52914 ms
+WIFI MODE:           WIFI_AP_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    1
+WiFi Status:         WL_CONNECTED
+RSSI:                -71 dBm
+SSID:                bop
+WiFiSSID:            bop
+Station IP Address:  192.168.2.104
+AP IP Address:       192.168.4.1
+MAC address:         18:FE:34:D7:6C:96
+
+handleRoom
+CURRENT STATUS
+Running for:         0:9:31
+Change to STA in:    26575 ms
+WIFI MODE:           WIFI_AP_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    1
+WiFi Status:         WL_CONNECTED
+RSSI:                -70 dBm
+SSID:                bop
+WiFiSSID:            bop
+Station IP Address:  192.168.2.104
+AP IP Address:       192.168.4.1
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:9:46
+Change to STA in:    11580 ms
+WIFI MODE:           WIFI_AP_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    1
+WiFi Status:         WL_CONNECTED
+RSSI:                -69 dBm
+SSID:                bop
+WiFiSSID:            bop
+Station IP Address:  192.168.2.104
+AP IP Address:       192.168.4.1
+MAC address:         18:FE:34:D7:6C:96
+
+handleRoom
+changing to STA
+CURRENT STATUS
+Running for:         0:10:2
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    1
+WiFi Status:         WL_CONNECTED
+RSSI:                -73 dBm
+SSID:                bop
+WiFiSSID:            bop
+Station IP Address:  192.168.2.104
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:10:16
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    1
+WiFi Status:         WL_CONNECTED
+RSSI:                -73 dBm
+SSID:                bop
+WiFiSSID:            bop
+Station IP Address:  192.168.2.104
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:10:31
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    1
+WiFi Status:         WL_CONNECTED
+RSSI:                -68 dBm
+SSID:                bop
+WiFiSSID:            bop
+Station IP Address:  192.168.2.104
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
+CURRENT STATUS
+Running for:         0:10:46
+Change to STA in:    don't change
+WIFI MODE:           WIFI_STA
+runAccessPoint:      0
+showFailureOnWeb:    0
+webServerRunning:    1
+accessPointStarted:  1
+stationStarted:      1
+showSuccessOnWeb:    1
+WiFi Status:         WL_CONNECTED
+RSSI:                -65 dBm
+SSID:                bop
+WiFiSSID:            bop
+Station IP Address:  192.168.2.104
+AP IP Address:       0.0.0.0
+MAC address:         18:FE:34:D7:6C:96
+
