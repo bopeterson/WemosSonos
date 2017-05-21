@@ -1,0 +1,140 @@
+Från början
+
+htmlstart 138
+htmlmid 2
+htmlend 14
+body 0
+onload 0
+
+# går först till connect (root)
+
+handleroot
+htmlstart 138
+htmlmid 2
+htmlend 14
+<h2>Wifi connection</h2><p>Connected to bop</p><form method=post action='/'><input type=text name=ssid value='bop' size=32 id=s1 onchange='document.getElementById("s2").value=this.value'> SSID (network name)<br><select name=s2 id=s2 onchange='document.getElementById("s1").value=this.value'><option value=''>enter ssid above or select here</option><option>TN_24GHz_B0375F</option><option>bop</option><option>SoE</option><option>SoE Guest</option><option>751559</option><option>TN_private_3E337J</option><option>TN_private_C337XF</option><option>TN_private_94X9P7</option><option>PiFi2</option><option>TN_private_39</option><option>TeliaGateway9C-97-26-49-90-AD</option><option>TN_private_4E4NCX</option></select><br><input type=password name=pass size=32> PASSWORD<br><input type=submit value=connect></form>
+body 808
+
+onload 0
+
+# ansluter till bop
+# som går till root med frm
+
+handleroot
+has arg ssid
+htmlstart 138
+htmlmid 2
+htmlend 14
+<h2>Wifi connection</h2><script>var i1</script><p>Connecting to bop</p><iframe frameborder=0 id=frm width=480 height=240 src=''></iframe>
+body 137
+var n=0;i1=setInterval(function() {n++;document.getElementById('frm').src='frm?r='+Math.random()+'&n='+n},2000)
+onload 111
+Connecting to bop
+
+handleFrm
+htmlstart 138
+htmlmid 2
+htmlend 14
+<script>document.write(new Array(1+1).join('.'))</script>
+body 57
+onload 0
+
+htmlstart 138
+htmlmid 2
+htmlend 14
+<script>document.write(new Array(1+2).join('.'))</script>
+body 57 obs kan bli 58, kanske 59
+onload 0
+
+Connection successful
+handleFrm
+htmlstart 138
+htmlmid 2
+htmlend 14
+Successfully connected to bop <script>parent.clearInterval(parent.i1)</script>
+body 78
+setTimeout(function(){window.parent.location.href='/search'},2000)
+onload 66
+
+# efter anslutan till search
+handleSearch - searches for Sonos devices
+htmlstart 138
+htmlmid 2
+htmlend 14
+<h2>Wifi connection</h2><p>Searching for Sonos devices...</p>
+body 61
+i1=setInterval(function() {location.href='/setup';},18000)
+onload 58
+
+# sedan till setup
+
+handleSetup
+htmlstart 138
+htmlmid 2
+htmlend 14
+<h2>Wifi connection</h2><p>Selected network: bop<p>Connection status: connected</p><p><a href='/'>Change network</a></p><h2>Sonos devices</h2><p>Click to select Sonos device: <ul><li><a href=setup?room=0>Kök</a></li><li><a href=setup?room=1>Vardagsrum</a></li></ul></p><p>No Sonos device selected</p><p><a href='/search'>Search for Sonos devices</a></p>
+body 354
+onload 0
+
+# klickar vardagsrum som går till setup igen
+
+handleSetup
+
+Vardagsrum
+Saving settings... setting device to 1
+htmlstart 138
+htmlmid 2
+htmlend 14
+<h2>Wifi connection</h2><p>Selected network: bop<p>Connection status: connected</p><p><a href='/'>Change network</a></p><h2>Sonos devices</h2><p>Click to select Sonos device: <ul><li><a href=setup?room=0>Kök</a></li><li><a href=setup?room=1>Vardagsrum</a> (selected)</li></ul></p><p><a href='/search'>Search for Sonos devices</a></p>
+body 334
+
+onload 0
+
+# klickar change network
+
+handleroot
+htmlstart 138
+htmlmid 2
+htmlend 14
+<h2>Wifi connection</h2><p>Connected to bop</p><form method=post action='/'><input type=text name=ssid value='bop' size=32 id=s1 onchange='document.getElementById("s2").value=this.value'> SSID (network name)<br><select name=s2 id=s2 onchange='document.getElementById("s1").value=this.value'><option value=''>enter ssid above or select here</option><option>TN_24GHz_B0375F</option><option>bop</option><option>SoE</option><option>SoE Guest</option><option>751559</option><option>TN_private_3E337J</option><option>TN_private_C337XF</option><option>TN_private_94X9P7</option><option>PiFi2</option><option>TN_private_39</option><option>TeliaGateway9C-97-26-49-90-AD</option><option>TN_private_4E4NCX</option></select><br><input type=password name=pass size=32> PASSWORD<br><input type=submit value=connect></form>
+body 808
+
+onload 0
+
+# klickar search devices
+
+handleSearch - searches for Sonos devices
+htmlstart 138
+htmlmid 2
+htmlend 14
+<h2>Wifi connection</h2><p>Searching for Sonos devices...</p>
+body 61
+i1=setInterval(function() {location.href='/setup';},18000)
+onload 58
+
+# som sedan går till setup
+
+
+
+handleSetup
+htmlstart 138
+htmlmid 2
+htmlend 14
+<h2>Wifi connection</h2><p>Selected network: bop<p>Connection status: connected</p><p><a href='/'>Change network</a></p><h2>Sonos devices</h2><p>Click to select Sonos device: <ul><li><a href=setup?room=0>Kök</a></li><li><a href=setup?room=1>Vardagsrum</a> (selected)</li></ul></p><p><a href='/search'>Search for Sonos devices</a></p>
+body 334
+
+onload 0
+Device 1 Vardagsrum 192.168.2.7
+
+# klickar vardagsrum som går till setup igen
+
+handleSetup
+Vardagsrum
+Saving settings... setting device to 1
+htmlstart 138
+htmlmid 2
+htmlend 14
+<h2>Wifi connection</h2><p>Selected network: bop<p>Connection status: connected</p><p><a href='/'>Change network</a></p><h2>Sonos devices</h2><p>Click to select Sonos device: <ul><li><a href=setup?room=0>Kök</a></li><li><a href=setup?room=1>Vardagsrum</a> (selected)</li></ul></p><p><a href='/search'>Search for Sonos devices</a></p>
+body 334
+
+onload 0
