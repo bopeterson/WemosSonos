@@ -138,3 +138,28 @@ htmlend 14
 body 334
 
 onload 0
+
+sidan setup kan ju variera kraftigt beroende på antal devices. får väl helt enkelt trunkera
+
+
+
+
+
+<h2>Wifi connection</h2><p>Connected to </p><form method=post action='/'><input type=text name=ssid value='' size=32 id=s1 onchange='document.getElementById("s2").value=this.value'> SSID (network name)<br><select name=s2 id=s2 onchange='document.getElementById("s1").value=this.value'></select><br><input type=password name=pass size=32> PASSWORD<br><input type=submit value=connect></form>
+
+
+
+
+<h2>Wifi connection</h2><p>Selected network: <p>Connection status: connected</p><p><a href='/'>Change network</a></p><h2>Sonos devices</h2><p>Click to select Sonos device: <ul>
+
+</ul></p><p>No Sonos device selected</p><p><a href='/search'>Search for Sonos devices</a></p>
+
+
+<li><a href=setup?room=0>Kök</a></li><li><a href=setup?room=1>Vardagsrum</a></li>
+
+
+Tänk rimligt: tänk 15 devices, varje namn 15 tecken + 35 tecken OH
+
+15*(15+35) = 750
+
+låt den vara 1024 då...

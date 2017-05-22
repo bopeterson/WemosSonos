@@ -64,7 +64,6 @@ int WemosSonos::string2int(const char *s) {
 
 void WemosSonos::filter(const char *starttag,const char *endtag) {
     //looks in global var _response for content between starttag and endtag and "returns" it in global var _filtered
-    //xxx this might crash if tags not found!!!???
     char * startpart=strstr(_response,starttag);
     char * endpart=strstr(_response,endtag);
 
@@ -154,14 +153,12 @@ void WemosSonos::deviceInfoRaw(const char *url,int device) {
     
     //wait if _client not immediately available
     unsigned long starttimer=millis();
-    unsigned long timelimit=12000; //xxx maybe change to 1000?
+    unsigned long timelimit=5000; //Used to be 12000. Changed to 5000. maybe change to 1000?
     bool timeout = false;
     while (!_client.available() && !timeout) {
         //wait until _client available
-        //Serial.println("waiting for client");
         delay(100);
         if ((millis() - starttimer) > timelimit) {
-            //Serial.println("timed out part 1 ");
             timeout=true;
         }
     }
@@ -177,17 +174,8 @@ void WemosSonos::deviceInfoRaw(const char *url,int device) {
         if (index >= SNSESP_BUFSIZ) { 
             index = SNSESP_BUFSIZ -1;
         }
-        int ic=c; //xxx
-        //Serial.print(ic);Serial.print(" ");delay(1);
-        /*
-        Serial.print(c);delay(1);
-        if (index % 30 == 0) {
-        Serial.println("");
-        }
-        */
-      
+        
         if ((millis() - starttimer) > timelimit) {
-            //Serial.println("timed out part 2");
             timeout=true;
         }
     }
@@ -241,10 +229,8 @@ void WemosSonos::sonosAction(const char *url, const char *service, const char *a
         bool timeout = false;
         while (!_client.available() && !timeout) {
             //wait until _client available
-            //Serial.println("waiting for client");
             delay(100);
             if ((millis() - starttimer) > timelimit) {
-                //Serial.println("timed out part 1 ");
                 timeout=true;
             }
         }
@@ -260,10 +246,7 @@ void WemosSonos::sonosAction(const char *url, const char *service, const char *a
             if (index >= SNSESP_BUFSIZ) { 
                 index = SNSESP_BUFSIZ -1;
             }
-
-            //Serial.write(c);
             if ((millis() - starttimer) > timelimit) {
-                //Serial.println("timed out part 2");
                 timeout=true;
             }
         }
@@ -285,7 +268,6 @@ int WemosSonos::discoverSonos(int timeout){
     unsigned long innerLoopTimeLimit = 3000;
     unsigned long firstSearch = millis();
     do {
-        //Serial.println("Sending M-SEARCH multicast");
         Udp.beginPacketMulticast(IPAddress(239, 255, 255, 250), 1900, WiFi.localIP());
         Udp.write("M-SEARCH * HTTP/1.1\r\n"
             "HOST: 239.255.255.250:1900\r\n"
@@ -303,9 +285,6 @@ int WemosSonos::discoverSonos(int timeout){
 
                 //if new IP, it should be put in an array
                 addIp(sonosIP);
-                //Serial.print(sonosIP);
-                //Serial.print(", port ");
-                //Serial.println(Udp.remotePort());
                 
                 // read the packet into packetBufffer
                 int len = Udp.read(packetBuffer, 255);
