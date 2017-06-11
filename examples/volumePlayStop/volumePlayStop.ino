@@ -2,11 +2,11 @@
    connections
 
    Wemos   Rotary encoder (Keyes KY-040)
-   GND     GND
-   5V      +
-   D3      CLK - pin A
-   D6      SW - push button
-   D7      DT - pin B
+   GND     GND                BLACK
+   5V      +                  RED
+   D3      CLK - pin A        GREEN
+   D6      SW - push button   WHITE
+   D7      DT - pin B         YELLOW
 
 */
 
@@ -14,7 +14,15 @@
 #include <WemosSonos.h>
 #include <WemosSetup.h>
 
+
 #include "settings.h"
+
+//length must not exceed WFS_MAXBODYLENGTH in WemosSetup.cpp, currently 1500
+#define MAXBODYCHLENGTH 1024
+
+//this is for sending stats to server for testing reliability, should be deleted xxx
+#include <ESP8266HTTPClient.h>
+HTTPClient http;
 
 int noOfDiscoveries = 0;
 bool discoveryInProgress = false;
@@ -27,11 +35,15 @@ const char compiledate[] = __DATE__;
 WemosSetup wifisetup;
 WemosSonos sonos;
 WemosButton knobButton;
-WemosButton testButton;
+//WemosButton testButton;
 
 const unsigned long checkRate = 15 * 1000; //how often main loop performs periodical task
 unsigned long lastPost = 0;
 int discoverSonosTimeout = 9; //seconds
+
+//this is for sending stats to server for testing reliability, should be deleted xxx
+const unsigned long logRate = 6 * 60 * 60 * 1000; //log 4 times a day
+unsigned long lastLog = 0;
 
 //encoder variables
 const int pinA = D3;  // Connected to CLK on KY-040
@@ -42,15 +54,14 @@ int aVal;
 int encoderRelativeCount;
 unsigned long moveTime;
 
-int oldVolume; //xxx used for readKnob2
-
+int oldVolume; //used for readKnob
 
 unsigned long periodicLast = 0;
 
 void setup() {
   settings.load();
   knobButton.begin(D6);
-  testButton.begin(D5);
+  //testButton.begin(D5);
 
   Serial.begin(115200);
   Serial.println("");
@@ -71,8 +82,6 @@ void setup() {
 
   wifisetup.begin(WIFI_STA, 0, BUILTIN_LED);//try to connect
 
-  wifisetup.printStringLength();
-
   wifisetup.afterConnection("/search");
 
   wifisetup.server.on("/search", handleSearch);
@@ -86,7 +95,7 @@ void setup() {
     unsigned long loopStart = millis();
     if (lastPost + checkRate <= loopStart) {
       lastPost = loopStart;
-      //wifisetup.printInfo(); //WFS_DEBUG to be true in WemosSetup.h for this to work
+      wifisetup.printInfo(); //WFS_DEBUG to be true in WemosSetup.h for this to work
     }
     if ((loopStart - starttimer) > timelimit) {
       wfs_debugprintln("");
@@ -99,6 +108,9 @@ void setup() {
     discoverSonos(discoverSonosTimeout);
   }
   Serial.println("entering main loop");
+
+
+
 }
 
 void loop() {
@@ -106,23 +118,18 @@ void loop() {
 
   wifisetup.inLoop();
 
-  //xxx om den aldrig gjorde någon discovery i setup för att den inte var connected men senare blivit connected,
-  //då ska den typ automatiskt göra en discovery xxx ändra kommentar till engelska
 
-  /*
-    xxx två oberoende if, den första sätter timetofirstdiscovery, den andra kollar timeto...
-    xxx och då kankse man ska skippa discovery i setup? nej, den gör ingen skada
-  */
-
-  //do a new search if saved room wasn't available at startup
+  //do a new search if saved room wasn't dicovered in setup
   if (device == -1 && settings.roomname != "" && noOfDiscoveries != 0) {
     noOfDiscoveries = 0; //not so logical to set it to zero, but think of it as a new start
   }
+  //set timer for first discovery if no network was available in setup, or saved room wasn't discovered in setup
   if (noOfDiscoveries == 0) {
     if (timeToFirstDiscovery == 0 && wifisetup.connected() && !discoveryInProgress) {
       timeToFirstDiscovery = millis() + 30000;
     }
   }
+  //execute the first discovery
   if (timeToFirstDiscovery != 0) {
     if (noOfDiscoveries == 0 && millis() > timeToFirstDiscovery) {
       timeToFirstDiscovery = 0;
@@ -131,30 +138,53 @@ void loop() {
     }
   }
 
+//this is for sending stats to server for testing reliability, should be deleted xxx
+  if (lastLog + logRate <= loopStart) {
+    lastLog = loopStart;
+    String logurl = "http://djallo.se/sonos/log.php?vol=";
+    logurl += oldVolume;
+    logurl += "&room=";
+    logurl += sonos.roomName(device);
+    http.begin(logurl);
+    int httpCode = http.GET();
+    if (httpCode > 0 && httpCode == HTTP_CODE_OK) {
+      String payload = http.getString();
+      Serial.println(payload);
+    } else {
+      Serial.print("error: ");
+      Serial.print(httpCode);
+    }
+    http.end();
+  }
+//this is for sending stats to server for testing reliability, should be deleted xxx
+
+
   if (lastPost + checkRate <= loopStart) {
     lastPost = loopStart;
     //put any code here that should run periodically
 
-    //wifisetup.printInfo();
+   if (device >= 0) {
+      oldVolume = sonos.getVolume(device);
+    }
+ 
+    wifisetup.printInfo();
     Serial.print("Device ");
     Serial.print(device);
     if (device >= 0 && wifisetup.connected()) {
       Serial.print(" ");
       Serial.print(sonos.roomName(device));
       Serial.print(" ");
-      Serial.print(sonos.getIpOfDevice(device));
+      Serial.println(sonos.getIpOfDevice(device));
+      Serial.print("Volume: ");
+      Serial.print(oldVolume);
     }
     Serial.println("");
     Serial.println("");
 
     //update oldVolume regularly, as other devices might change the volume as well
-    if (device >= 0) {
-      oldVolume = sonos.getVolume(device);
-    }
   }
 
-  //readKnob1();
-  oldVolume = readKnob2(oldVolume);
+  oldVolume = readKnob(oldVolume);
 
   byte knobButtonStatus = knobButton.readButtonAdvanced(5000);
   if ((knobButtonStatus & knobButton.HOLD_DETECTED)) {
@@ -165,18 +195,18 @@ void loop() {
     Serial.println("button pressed");
     if (device >= 0) {
       if (sonos.getTransportInfo(device) == "PLAYING") {
-        //sonos.pause(device);
-        Serial.println("PAUSE DISABLED");
+        sonos.pause(device);
+        //Serial.println("PAUSE DISABLED");
       } else {
-        //sonos.play(device);
-        Serial.println("PLAY DISABLED");
+        sonos.play(device);
+        //Serial.println("PLAY DISABLED");
       }
     }
   }
 
-  if (testButton.readButton()) {
-    clearSettings(); //only for test
-  }
+//  if (testButton.readButton()) {
+//    clearSettings(); //only for test
+//  }
 }
 
 void clearSettings() {
@@ -208,7 +238,7 @@ void handleSearch() {
 
 void handleSetup() {
   Serial.println("handleSetup");
-  char bodych[1024];
+  char bodych[MAXBODYCHLENGTH];
   int selectedDevice = -1;
 
   if (wifisetup.server.hasArg("room")) {
@@ -249,7 +279,7 @@ void handleSetup() {
   } else {
     body = body + "<p>Click to select Sonos device: <ul>";
     for (int i = 0; i < sonos.getNumberOfDevices(); i++) {
-      if (body.length()<1024-300) { //truncate if very many devices
+      if (body.length() < MAXBODYCHLENGTH - 300) { //truncate if very many devices
         body = body + "<li><a href=setup?room=" + i + ">" + sonos.roomName(i) + "</a>";
         if (sonos.roomName(i) == settings.roomname && sonos.roomName(i) != "") {
           body = body + " (selected)";
@@ -265,7 +295,7 @@ void handleSetup() {
   }
   body = body + "<p><a href='/search'>Search for Sonos devices</a></p>";
 
-  body.toCharArray(bodych, 1024);
+  body.toCharArray(bodych, MAXBODYCHLENGTH);
   sprintf(wifisetup.body, "%s", bodych);
   sprintf(wifisetup.onload, "");
   wifisetup.sendHtml(wifisetup.body, wifisetup.onload);
@@ -295,55 +325,16 @@ void discoverSonos(int timeout) {
       Serial.println("");
     }
     Serial.println("discoverReady");
-    wifisetup.startWebServer();
+    //wifisetup.startWebServer();
     discoveryInProgress = false;
   }
 }
 
-void readKnob1() {
-  //read knob
-  aVal = digitalRead(pinA);
-  if (aVal != pinALast) { // Means the knob is rotating
-    moveTime = millis() + 150;
-    // if the knob is rotating, we need to determine direction
-    // We do that by reading pin B.
-    if (digitalRead(pinB) != aVal) {  // Means pin A Changed first - We're Rotating Clockwise
-      encoderPosCount++;
-      encoderRelativeCount++;
-    } else {// Otherwise B changed first and we're moving CCW
-      encoderPosCount--;
-      encoderRelativeCount--;
-    }
 
-    Serial.print("Encoder Position: ");
-    Serial.println(encoderPosCount);
-
-  }
-  pinALast = aVal;
-
-  if (millis() > moveTime && moveTime != 0) {
-    int oldVolume = sonos.getVolume(device);
-    //xxx handle timeout in getVolume
-    int newVolume = oldVolume + floor(2 * 0.5 * (encoderRelativeCount + 0.5));
-    newVolume = constrain(newVolume, 0, 100);
-
-    Serial.print("Volume:         ");
-    Serial.println(newVolume);
-    Serial.print("Volume change;  ");
-    Serial.println(newVolume - oldVolume);
-    Serial.print("Encoder change: ");
-    Serial.println(encoderRelativeCount);
-    if (device >= 0) {
-      sonos.setVolume(newVolume, device);
-    }
-    moveTime = 0;
-    encoderRelativeCount = 0;
-  }
-}
-
-int readKnob2(int oldVolume) {
+int readKnob(int oldVolume) {
+  //polling encoder rather than using interrupts seems to work good enough
   int newVolume = oldVolume;
-  //read knob
+
   aVal = digitalRead(pinA);
   if (aVal != pinALast) { // Means the knob is rotating
     moveTime = millis() + 150;
@@ -364,7 +355,6 @@ int readKnob2(int oldVolume) {
   pinALast = aVal;
 
   if (millis() > moveTime && moveTime != 0) {
-    //xxx handle timeout in getVolume
     if (encoderRelativeCount == 2 || encoderRelativeCount == -2) {
       //for finetuning of volume
       newVolume = oldVolume + 0.5 * encoderRelativeCount;
