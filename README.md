@@ -3,7 +3,7 @@ Arduino library for controlling Sonos system with wemos.cc or other ESP8266-base
 
 ## Todo
 
-- Fix deviceInfo method
-- Examples
+- ~~Fix deviceInfo method~~
+- Examples~~
 - Introduction
 
