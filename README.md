@@ -1,5 +1,5 @@
 # WemosSonos
-Arduino library for controlling Sonos system with <http://wemos.cc> or other ESP8266-based board. 
+Arduino library for controlling Sonos system with <https://wemos.cc> or other ESP8266-based board. 
 
 ## About the example
 
