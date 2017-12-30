@@ -91,11 +91,115 @@ void WemosSonos::setVolume(byte vol,int device) {
 
 
 
+String WemosSonos::roomNameEconomical(int device) {
+    const char url[] = "/xml/device_description.xml";
+    const char starttag[]="<roomName>";
+    const char endtag[]="</roomName>";
+    
+    IPAddress deviceIP = _deviceIPs[device];
+    if (_client.connect(deviceIP, 1400)) {
+        _client.print("GET ");
+        _client.print(url);
+        _client.println(" HTTP/1.1");
+        _client.print("Host: ");
+        _client.println(deviceIP); //note: device is of type IPAddress which converts to int
+        _client.println("");
+    }
+    
+    //wait if _client not immediately available
+    unsigned long starttimer=millis();
+    unsigned long timelimit=5000; //Used to be 12000
+    bool timeout = false;
+    while (!_client.available() && !timeout) {
+        //wait until _client available
+        delay(100);
+        if ((millis() - starttimer) > timelimit) {
+            timeout=true;
+        }
+    }
+    //timeout shall keep current state for the coming while-loop. Only starttimer should be updated
 
+    timelimit=10000;
+    starttimer=millis();
+    int index=0;
+    bool betweenCR=false;
+    bool firstLtRead=false;
+    bool headerRead=false;
+    bool found=false;
+    for (int i=0;i<SNSESP_FILTSIZ-1;i++) {
+       _filtered[i]=' ';
+    }
+    _filtered[SNSESP_FILTSIZ-1]='\0';
+      
+    while (_client.available()  && !timeout && !found) {
+        char c = _client.read();
+        if (c=='<' && !firstLtRead) {
+            firstLtRead=true;
+        }
+        if (c=='?' && firstLtRead && !headerRead) {
+            headerRead=true;
+            _filtered[SNSESP_FILTSIZ-2]='<';
+            index++;
+        }
+        
+        if (headerRead) {
+            if ((index % 100)==0) {
+                delay(1); //a short delay (or yield?) needed now and then, otherwise all characters won't be read
+            }
+            if (c=='\r') {
+                if (betweenCR) {
+                    char dropLF=_client.read(); //drop a linefeed \n (10) after CR \r (13) and move on to next character
+                }
+                betweenCR=!betweenCR;
+            }
+        
+            if (!betweenCR && c!='\r') {
+                memcpy(&_filtered[0], &_filtered[1], SNSESP_FILTSIZ-1);//shift array one step left
+                _filtered[SNSESP_FILTSIZ-2]=c; //add read character at the end
+                if (c=='>') {
+                    //search for tags
+                    char * startpart=strstr(_filtered,starttag);
+                    char * endpart=strstr(_filtered,endtag);
+
+                    if (startpart!=0 && endpart!=0) {
+                        int startindex=startpart-_filtered+strlen(starttag);
+                        int endindex=endpart-_filtered;
+ 
+                        strncpy(_filtered,_filtered+startindex,endindex-startindex);
+                        _filtered[endindex-startindex]='\0';
+                        found=true;
+                    }
+                    
+                }
+                index++;
+            }
+        }
+        
+        if ((millis() - starttimer) > timelimit) {
+            timeout=true;
+        }
+    }
+    if (timeout) {
+        _client.stop();
+    }
+    
+    if (!found) {
+        _filtered[0]='\0'; //empty string
+    }
+ 
+    return String(_filtered);
+}
 
 
 
 String WemosSonos::roomName(int device) {
+    //this function requires a large _filtered buffer. If you are short on memory,
+    //use roomNameEconomical instead
+    
+    const char url[] = "/xml/device_description.xml";
+    deviceInfoRaw(url,device);
+    filter("<roomName>","</roomName>");
+
     /* 
     For the weirdest of reasons, the roomname starts and ends 
     with some stray characters and linefeeds, but only when the 
@@ -103,15 +207,14 @@ String WemosSonos::roomName(int device) {
     not there if deviceinfo is read with cURL or PHP. No clue why. 
     
     The roomname is found between the second and third linefeed (return+newline)
+
+    UPDATE: the stray CRs and LFs are handled in deviceInfoRaw now
     */
-    
-    const char url[] = "/xml/device_description.xml";
-    deviceInfoRaw(url,device);
-    
-    filter("<roomName>","</roomName>");
-    
+
+    /*    
     char newline[]="\r\n";
     char room[64]; //can maybe be shorter
+
     room[0] = '\0';
     
     //find the first linefeed
@@ -135,8 +238,10 @@ String WemosSonos::roomName(int device) {
         strncpy(room,_filtered,strlen(_filtered));
         room[strlen(_filtered)]='\0';
     }
+    return String(room);
+    */
 
-    return String(room); 
+    return String(_filtered);
 }
 
 void WemosSonos::deviceInfoRaw(const char *url,int device) {
@@ -153,7 +258,7 @@ void WemosSonos::deviceInfoRaw(const char *url,int device) {
     
     //wait if _client not immediately available
     unsigned long starttimer=millis();
-    unsigned long timelimit=5000; //Used to be 12000. Changed to 5000. maybe change to 1000?
+    unsigned long timelimit=5000; //Used to be 12000
     bool timeout = false;
     while (!_client.available() && !timeout) {
         //wait until _client available
@@ -164,15 +269,41 @@ void WemosSonos::deviceInfoRaw(const char *url,int device) {
     }
     //timeout shall keep current state for the coming while-loop. Only starttimer should be updated
 
+    timelimit=10000;
     starttimer=millis();
     int index=0;
-
+    bool betweenCR=false;
+    bool firstLtRead=false;
+    bool headerRead=false;
     while (_client.available()  && !timeout) {
         char c = _client.read();
-        _response[index]=c;
-        index++;
-        if (index >= SNSESP_BUFSIZ) { 
-            index = SNSESP_BUFSIZ -1;
+        if (c=='<' && !firstLtRead) {
+            firstLtRead=true;
+        }
+        if (c=='?' && firstLtRead && !headerRead) {
+            headerRead=true;
+            _response[index]='<';
+            index++;
+        }
+        
+        if (headerRead) {
+            if ((index % 100)==0) {
+                delay(1); //a short delay (or yield?) needed now and then, otherwise all characters won't be read
+            }
+            if (c=='\r') {
+                if (betweenCR) {
+                    char dropLF=_client.read(); //drop a linefeed \n (10) after CR \r (13) and move on to next character
+                }
+                betweenCR=!betweenCR;
+            }
+        
+            if (!betweenCR && c!='\r') {
+                _response[index]=c;
+                index++;
+                if (index >= SNSESP_BUFSIZ) { 
+                    index = SNSESP_BUFSIZ-1;
+                }
+            }
         }
         
         if ((millis() - starttimer) > timelimit) {
@@ -183,10 +314,6 @@ void WemosSonos::deviceInfoRaw(const char *url,int device) {
         _client.stop();
     }
     _response[index]='\0'; //end of string
-    
-    
-
-    
 }
 
 void WemosSonos::sonosAction(const char *url, const char *service, const char *action, const char *arguments,int device) {

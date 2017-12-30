@@ -6,8 +6,10 @@
 #include <WiFiUDP.h>
 
 //#define SNSESP_BUFSIZ 512
-//bufsize with 10k needed if full xml device description must fit
-#define SNSESP_BUFSIZ 10000
+//bufsize with 10k needed if full xml device description must fit. hm, too small now...changed to 15k
+//xxxx add some directive to swithc between different versions of bufsiz and roomname
+#define SNSESP_BUFSIZ 15000
+#define SNSESP_FILTSIZ 256
 #define SNSESP_MAXNROFDEVICES 10
 
 
@@ -25,14 +27,14 @@ class WemosSonos {
     IPAddress getIpOfDevice(int device);
     
     
-    
+    String roomNameEconomical(int device);
     String roomName(int device);
 
   
 
   private:
     char _response[SNSESP_BUFSIZ];
-    char _filtered[256];
+    char _filtered[SNSESP_FILTSIZ];
     IPAddress _deviceIPs[SNSESP_MAXNROFDEVICES];
     WiFiClient _client;
     int _numberOfDevices;
