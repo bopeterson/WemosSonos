@@ -8,10 +8,11 @@
 //#define SNSESP_BUFSIZ 512
 //bufsize with 10k needed if full xml device description must fit. hm, too small now...changed to 15k
 //xxxx add some directive to swithc between different versions of bufsiz and roomname
-#define SNSESP_BUFSIZ 15000
-#define SNSESP_FILTSIZ 256
+//#define SNSESP_BUFSIZ 15000
+//#define SNSESP_FILTSIZ 256
+#define SNSESP_BUFSIZ 1024
+#define SNSESP_FILTSIZ 1024
 #define SNSESP_MAXNROFDEVICES 10
-
 
 class WemosSonos {
   public:
@@ -26,11 +27,8 @@ class WemosSonos {
     int getNumberOfDevices();
     IPAddress getIpOfDevice(int device);
     
-    
-    String roomNameEconomical(int device);
+    int getCoordinator(int device);
     String roomName(int device);
-
-  
 
   private:
     char _response[SNSESP_BUFSIZ];
@@ -41,11 +39,14 @@ class WemosSonos {
     
     void sonosAction(const char *url, const char *service, const char *action, const char *arguments,int device);
     void filter(const char *starttag,const char *endtag);
+    String getDeviceDesctiptionTagContent(const char *starttag,const char *endtag,int device);
+    
     int string2int(const char *s);
+    IPAddress string2ip(const char *s);
+    
     bool addIp(IPAddress ip);
     void deviceInfoRaw(const char *url,int device);
 };
 
 #endif
-
 

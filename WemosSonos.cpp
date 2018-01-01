@@ -1,5 +1,10 @@
 #include "Arduino.h"
 #include "WemosSonos.h"
+#include<string.h>
+
+//ha ett compiledirektiv som bara tar med getdeviceinfo och lång _resultbuffer om man vill
+//fast den kanske behövs för att kolla controllers......
+
 
 WemosSonos::WemosSonos() {
     _numberOfDevices=0;
@@ -64,13 +69,16 @@ int WemosSonos::string2int(const char *s) {
 
 void WemosSonos::filter(const char *starttag,const char *endtag) {
     //looks in global var _response for content between starttag and endtag and "returns" it in global var _filtered
+    //check for starttag
     char * startpart=strstr(_response,starttag);
-    char * endpart=strstr(_response,endtag);
-
-    if (startpart!=0 && endpart!=0) {
-        int startindex=startpart-_response+strlen(starttag);
-        int endindex=endpart-_response;
- 
+    char * endpart;
+    if (startpart!=0) {
+        //check for endtag if starttag exists
+      endpart=strstr(startpart+strlen(starttag),endtag);
+    }
+    int startindex=startpart-_response+strlen(starttag);
+    int endindex=endpart-_response;
+    if (startpart!=0 && endpart!=0 && endindex>startindex) {
         strncpy(_filtered,_response+startindex,endindex-startindex);
         _filtered[endindex-startindex]='\0';
     } else {
@@ -88,15 +96,17 @@ void WemosSonos::setVolume(byte vol,int device) {
     sonosAction(url,service,action,arguments,device);
 }
 
-
-
-
-String WemosSonos::roomNameEconomical(int device) {
-    const char url[] = "/xml/device_description.xml";
+String WemosSonos::roomName(int device) {
     const char starttag[]="<roomName>";
     const char endtag[]="</roomName>";
+    return getDeviceDesctiptionTagContent(starttag,endtag,device);
+}
+
+String WemosSonos::getDeviceDesctiptionTagContent(const char *starttag,const char *endtag,int device) {
+    //xxx consider replacing _filtered with _response
+    const char url[] = "/xml/device_description.xml";
     
-    IPAddress deviceIP = _deviceIPs[device];
+    IPAddress deviceIP = getIpOfDevice(device);
     if (_client.connect(deviceIP, 1400)) {
         _client.print("GET ");
         _client.print(url);
@@ -127,7 +137,7 @@ String WemosSonos::roomNameEconomical(int device) {
     bool headerRead=false;
     bool found=false;
     for (int i=0;i<SNSESP_FILTSIZ-1;i++) {
-       _filtered[i]=' ';
+      _filtered[i];
     }
     _filtered[SNSESP_FILTSIZ-1]='\0';
       
@@ -190,62 +200,168 @@ String WemosSonos::roomNameEconomical(int device) {
     return String(_filtered);
 }
 
-
-
+/*
 String WemosSonos::roomName(int device) {
-    //this function requires a large _filtered buffer. If you are short on memory,
-    //use roomNameEconomical instead
+    //this function requires a large _filtered buffer. It has been replaced
+    //by a more economical one
     
     const char url[] = "/xml/device_description.xml";
     deviceInfoRaw(url,device);
     filter("<roomName>","</roomName>");
 
-    /* 
-    For the weirdest of reasons, the roomname starts and ends 
-    with some stray characters and linefeeds, but only when the 
-    device info is read with the wemos. Those extra characters are 
-    not there if deviceinfo is read with cURL or PHP. No clue why. 
-    
-    The roomname is found between the second and third linefeed (return+newline)
-
-    UPDATE: the stray CRs and LFs are handled in deviceInfoRaw now
-    */
-
-    /*    
-    char newline[]="\r\n";
-    char room[64]; //can maybe be shorter
-
-    room[0] = '\0';
-    
-    //find the first linefeed
-    char * part1 = strstr(_filtered, newline);
-    if (part1 != 0) {
-        //find the second linefeed
-        char * part2 = strstr(part1 + 2, newline);
-        if (part2 != 0) {
-            //find the third linefeed
-            char * part3 = strstr(part2 + 2, newline);
-            if (part3 != 0) {
-                int endpos = part3 - part2-2;
-                strncpy(room, part2+2, endpos);
-                room[endpos] = '\0';
-            }
-        }
-    }
-
-    if (room[0]=='\0') {
-        //use origianl _filtered value if less than 3 linefeeds were found
-        strncpy(room,_filtered,strlen(_filtered));
-        room[strlen(_filtered)]='\0';
-    }
-    return String(room);
-    */
-
     return String(_filtered);
 }
+*/
+
+int WemosSonos::getCoordinator(int device) {
+    const char url[] = "/status/topology";
+
+    const char starttag[]="<ZonePlayer ";
+    const char endtag[]="</ZonePlayer>";
+
+    
+    IPAddress deviceIP = getIpOfDevice(device);
+    IPAddress loopIP;
+    if (_client.connect(deviceIP, 1400)) {
+        _client.print("GET ");
+        _client.print(url);
+        _client.println(" HTTP/1.1");
+        _client.print("Host: ");
+        _client.println(deviceIP); //note: device is of type IPAddress which converts to int
+        _client.println("");
+    }
+    
+    //wait if _client not immediately available
+    unsigned long starttimer=millis();
+    unsigned long timelimit=5000; //Used to be 12000
+    bool timeout = false;
+    while (!_client.available() && !timeout) {
+        //wait until _client available
+        delay(100);
+        if ((millis() - starttimer) > timelimit) {
+            timeout=true;
+        }
+    }
+    //timeout shall keep current state for the coming while-loop. Only starttimer should be updated
+
+    timelimit=10000;
+    starttimer=millis();
+    int index=0;
+    bool betweenCR=false;
+    bool firstLtRead=false;
+    bool headerRead=false;
+    int foundDevices=0;
+
+    for (int i=0;i<SNSESP_BUFSIZ-1;i++) {
+       _response[i]=' ';
+    }
+    _response[SNSESP_BUFSIZ-1]='\0';
+      
+    while (_client.available()  && !timeout) {
+        char c = _client.read();
+        if (c=='<' && !firstLtRead) {
+            firstLtRead=true;
+        }
+        if (c=='?' && firstLtRead && !headerRead) {
+            headerRead=true;
+            _response[SNSESP_BUFSIZ-2]='<';
+            index++;
+        }
+        
+        if (headerRead) {
+            if ((index % 100)==0) {
+                delay(1); //a short delay (or yield?) needed now and then, otherwise all characters won't be read
+            }
+            if (c=='\r') {
+                if (betweenCR) {
+                    char dropLF=_client.read(); //drop a linefeed \n (10) after CR \r (13) and move on to next character
+                }
+                betweenCR=!betweenCR;
+            }
+        
+            if (!betweenCR && c!='\r') {
+                memcpy(&_response[0], &_response[1], SNSESP_BUFSIZ-1);//shift array one step left
+                _response[SNSESP_BUFSIZ-2]=c; //add read character at the end
+                if (c=='>') {
+                    //search for tags
+                    char * startpart=strstr(_response,starttag);
+                    char * endpart=strstr(_response,endtag);
+                    if (startpart!=0 && endpart!=0) {
+                        int startindex=startpart-_response+strlen(starttag);
+                        int endindex=endpart-_response;
+                        
+                        strncpy(_response,_response+startindex,endindex-startindex);
+                        _response[endindex-startindex]='\0';
+                        foundDevices++;
+                        
+                        // xxx extract group, coordinator and location from filtered,
+                        //first location to get device number
+                        char starttag2[]="location='http://";
+                        char endtag2[]=":1400";
+                        char * startpart=strstr(_response,starttag2);
+                        char * endpart=strstr(_response,endtag2);
+                        
+                        if (startpart!=0 && endpart!=0) {
+                            startindex=startpart-_response+strlen(starttag2);
+                            endindex=endpart-_response;
+                        
+                            strncpy(_filtered,_response+startindex,endindex-startindex);
+                            _filtered[endindex-startindex]='\0';
+                            loopIP=string2ip(_filtered);
+                            
+                        }
+                        
+                        Serial.print("loopIP ");
+                        Serial.println(loopIP);
+                        Serial.print("deviceIP ");
+                        Serial.println(deviceIP);
+                        Serial.println(deviceIP==loopIP);
+                        Serial.println(((String)_filtered)==deviceIP.toString()); //xxx alternative without sting2ip
+                        //xxx could have converted deviceIP to string instead.....
+                        int loopDeviceNumber=-1;
+                        bool found=false;
+                        for (int i=0;i<getNumberOfDevices() && !found;i++) {
+                        
+                            if ((String)_filtered==getIpOfDevice(i).toString()) {
+                                found=true;
+                                loopDeviceNumber=i;
+                            }
+                        }
+                        Serial.print("loopDeviceNumber ");
+                        Serial.println(loopDeviceNumber);
+                        
+                        //clear buffer
+                        
+                        for (int i=0;i<SNSESP_BUFSIZ-1;i++) {
+                          _response[i]=' ';
+                        }
+
+
+
+                    }
+                    
+                }
+                index++;
+            }
+        }
+        
+        if ((millis() - starttimer) > timelimit) {
+            timeout=true;
+        }
+    }
+    if (timeout) {
+        _client.stop();
+    }
+    
+ 
+ 
+    return 0;//String(_filtered);
+}
+
 
 void WemosSonos::deviceInfoRaw(const char *url,int device) {
-    IPAddress deviceIP = _deviceIPs[device];
+    //this one requires a large size of _response. try to avoid using this
+    IPAddress deviceIP = getIpOfDevice(device);
     if (_client.connect(deviceIP, 1400)) {
         _client.print("GET ");
         _client.print(url); //skiljer
@@ -313,11 +429,15 @@ void WemosSonos::deviceInfoRaw(const char *url,int device) {
     if (timeout) {
         _client.stop();
     }
+    
+    Serial.print("index ");Serial.println(index);//xxx
+    
     _response[index]='\0'; //end of string
 }
 
 void WemosSonos::sonosAction(const char *url, const char *service, const char *action, const char *arguments,int device) {
-    IPAddress deviceIP = _deviceIPs[device];
+    //length of response typically 400-600 characters
+    IPAddress deviceIP = getIpOfDevice(device);
     if (_client.connect(deviceIP, 1400)) {
         _client.print("POST /MediaRenderer");
         _client.print(url); //skiljer
@@ -381,7 +501,9 @@ void WemosSonos::sonosAction(const char *url, const char *service, const char *a
             _client.stop();
         }
         _response[index]='\0'; //end of string
-    }  
+    } else {
+        _response[0]='\0';
+    }
 }
 
 int WemosSonos::discoverSonos(int timeout){
@@ -423,7 +545,7 @@ int WemosSonos::discoverSonos(int timeout){
         }
     } while((millis()-firstSearch)<timeLimit);
     
-    return _numberOfDevices;
+    return getNumberOfDevices();
 }
 
 bool WemosSonos::addIp(IPAddress ip) {
@@ -456,6 +578,26 @@ int WemosSonos::getNumberOfDevices() {
     return _numberOfDevices;
 }
 
+IPAddress WemosSonos::string2ip(const char *s) {
+  //returns IPAddress from sting containing IPAddress.
+  IPAddress ipad;
+  char ipstring[16];
+  strcpy(ipstring,s);
+  for (int i=3;i>=0;i--) {
+    int position=0;
+    char * numberstring = strrchr(ipstring,'.');
+    if (numberstring!=0) {
+      position=numberstring-ipstring;
+      numberstring=&numberstring[1];
+    } else {
+      numberstring=ipstring;
+    }
+    int number=string2int(numberstring);
+    ipstring[position]='\0';
+    ipad[i]=number;
+  }
+  return(ipad);
+}
 
 
 
