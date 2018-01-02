@@ -19,9 +19,11 @@ class WemosSonos {
     WemosSonos();
     void removeAllTracksFromQueue(int device); 
     void pause(int device);
+    void stop(int device);
     void play(int device);
     byte getVolume(int device);
     void setVolume(byte vol,int device);
+    String getTransportInfoTrans(int device);
     String getTransportInfo(int device);
     int discoverSonos(int timeout);
     int getNumberOfDevices();
@@ -34,6 +36,10 @@ class WemosSonos {
     char _response[SNSESP_BUFSIZ];
     char _filtered[SNSESP_FILTSIZ];
     IPAddress _deviceIPs[SNSESP_MAXNROFDEVICES];
+    String _group[SNSESP_MAXNROFDEVICES];
+    bool _isCoordinator[SNSESP_MAXNROFDEVICES];
+    int _myCoordinator[SNSESP_MAXNROFDEVICES]; //-1 if device is coordinator, otherwise the device number of the coordinator
+    
     WiFiClient _client;
     int _numberOfDevices;
     

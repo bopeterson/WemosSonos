@@ -18,6 +18,14 @@ void WemosSonos::pause(int device) {
     sonosAction(url,service,action,arguments,device);
 }
 
+void WemosSonos::stop(int device) {
+    const char url[] = "/AVTransport/Control";
+    const char service[] = "AVTransport:1";
+    const char action[] = "Stop";
+    const char arguments[] = "<InstanceID>0</InstanceID>";
+    sonosAction(url,service,action,arguments,device);
+}
+
 void WemosSonos::play(int device) {
     const char url[] = "/AVTransport/Control";
     const char service[] = "AVTransport:1";
@@ -39,8 +47,8 @@ byte WemosSonos::getVolume(int device) {
     return string2int(_filtered);
 }
 
-String WemosSonos::getTransportInfo(int device) {
-    //returns STOPPED, PLAYING or PAUSED_PLAYBACK
+String WemosSonos::getTransportInfoTrans(int device) {
+    //returns STOPPED, PLAYING, PAUSED_PLAYBACK or TRANSITIONING
     const char url[] = "/AVTransport/Control";
     const char service[] = "AVTransport:1";
     const char action[] = "GetTransportInfo";
@@ -50,7 +58,22 @@ String WemosSonos::getTransportInfo(int device) {
     return String(_filtered);
 }
 
-
+String WemosSonos::getTransportInfo(int device) {
+    //returns STOPPED, PLAYING or PAUSED_PLAYBACK (but not TRANSITIONING)
+    const char url[] = "/AVTransport/Control";
+    const char service[] = "AVTransport:1";
+    const char action[] = "GetTransportInfo";
+    const char arguments[] = "<InstanceID>0</InstanceID>";
+    
+    sonosAction(url,service,action,arguments,device);
+    filter("<CurrentTransportState>","</CurrentTransportState>");
+    while(strcmp(_filtered,"TRANSITIONING")==0) {
+        sonosAction(url,service,action,arguments,device);
+        filter("<CurrentTransportState>","</CurrentTransportState>");
+        delay(100);
+    }
+    return String(_filtered);
+}
 
 void WemosSonos::removeAllTracksFromQueue(int device) { 
     const char url[] = "/AVTransport/Control";
@@ -216,8 +239,8 @@ String WemosSonos::roomName(int device) {
 int WemosSonos::getCoordinator(int device) {
     const char url[] = "/status/topology";
 
-    const char starttag[]="<ZonePlayer ";
-    const char endtag[]="</ZonePlayer>";
+//    const char starttag[]="<ZonePlayer ";
+//    const char endtag[]="</ZonePlayer>";
 
     
     IPAddress deviceIP = getIpOfDevice(device);
@@ -283,61 +306,33 @@ int WemosSonos::getCoordinator(int device) {
                 memcpy(&_response[0], &_response[1], SNSESP_BUFSIZ-1);//shift array one step left
                 _response[SNSESP_BUFSIZ-2]=c; //add read character at the end
                 if (c=='>') {
-                    //search for tags
-                    char * startpart=strstr(_response,starttag);
-                    char * endpart=strstr(_response,endtag);
-                    if (startpart!=0 && endpart!=0) {
-                        int startindex=startpart-_response+strlen(starttag);
-                        int endindex=endpart-_response;
-                        
-                        strncpy(_response,_response+startindex,endindex-startindex);
-                        _response[endindex-startindex]='\0';
+                    
+                    filter("<ZonePlayer ","</ZonePlayer>");
+                    
+                    if (strlen(_filtered)>0) {
                         foundDevices++;
-                        
-                        // xxx extract group, coordinator and location from filtered,
-                        //first location to get device number
-                        char starttag2[]="location='http://";
-                        char endtag2[]=":1400";
-                        char * startpart=strstr(_response,starttag2);
-                        char * endpart=strstr(_response,endtag2);
-                        
-                        if (startpart!=0 && endpart!=0) {
-                            startindex=startpart-_response+strlen(starttag2);
-                            endindex=endpart-_response;
-                        
-                            strncpy(_filtered,_response+startindex,endindex-startindex);
-                            _filtered[endindex-startindex]='\0';
-                            loopIP=string2ip(_filtered);
-                            
-                        }
-                        
-                        Serial.print("loopIP ");
-                        Serial.println(loopIP);
-                        Serial.print("deviceIP ");
-                        Serial.println(deviceIP);
-                        Serial.println(deviceIP==loopIP);
-                        Serial.println(((String)_filtered)==deviceIP.toString()); //xxx alternative without sting2ip
-                        //xxx could have converted deviceIP to string instead.....
+                        //copy back filtered to response as it will be further filtered
+                        strcpy(_response,_filtered);    
+                        filter("location='http://",":1400");
                         int loopDeviceNumber=-1;
                         bool found=false;
                         for (int i=0;i<getNumberOfDevices() && !found;i++) {
-                        
                             if ((String)_filtered==getIpOfDevice(i).toString()) {
                                 found=true;
                                 loopDeviceNumber=i;
                             }
                         }
-                        Serial.print("loopDeviceNumber ");
-                        Serial.println(loopDeviceNumber);
+                        
+                        
+                        filter("group='","'");
+                        _group[loopDeviceNumber]=String(_filtered);
+                        filter("coordinator='","'");
+                        _isCoordinator[loopDeviceNumber]=(strcmp(_filtered,"true")==0);
                         
                         //clear buffer
-                        
                         for (int i=0;i<SNSESP_BUFSIZ-1;i++) {
                           _response[i]=' ';
                         }
-
-
-
                     }
                     
                 }
@@ -353,14 +348,25 @@ int WemosSonos::getCoordinator(int device) {
         _client.stop();
     }
     
+    for (int thisDevice=0;thisDevice<getNumberOfDevices();thisDevice++) {        
+        _myCoordinator[thisDevice]=-1;
+        if (!_isCoordinator[thisDevice]) {
+            for (int otherDevice=0;otherDevice<getNumberOfDevices();otherDevice++) {
+                if (_group[thisDevice]==_group[otherDevice]) {
+                    _myCoordinator[thisDevice]=otherDevice;
+                }
+            }
+        }
+    }
+    
  
- 
-    return 0;//String(_filtered);
+    return _myCoordinator[device];
 }
 
 
 void WemosSonos::deviceInfoRaw(const char *url,int device) {
-    //this one requires a large size of _response. try to avoid using this
+    //this one requires a large size of _response. avoid this
+    //because _response size is too small
     IPAddress deviceIP = getIpOfDevice(device);
     if (_client.connect(deviceIP, 1400)) {
         _client.print("GET ");
@@ -429,8 +435,6 @@ void WemosSonos::deviceInfoRaw(const char *url,int device) {
     if (timeout) {
         _client.stop();
     }
-    
-    Serial.print("index ");Serial.println(index);//xxx
     
     _response[index]='\0'; //end of string
 }
