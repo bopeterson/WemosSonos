@@ -113,13 +113,12 @@ void WemosSonos::setVolume(byte vol,int device) {
 }
 
 String WemosSonos::roomName(int device) {
-    const char starttag[]="<roomName>";
-    const char endtag[]="</roomName>";
-    return getDeviceDesctiptionTagContent(starttag,endtag,device);
+    //const char starttag[]="<roomName>";
+    //const char endtag[]="</roomName>";
+    return getDeviceDesctiptionTagContent("<roomName>","</roomName>",device);
 }
 
 String WemosSonos::getDeviceDesctiptionTagContent(const char *starttag,const char *endtag,int device) {
-    //xxx consider replacing _filtered with _response
     const char url[] = "/xml/device_description.xml";
     
     IPAddress deviceIP = getIpOfDevice(device);
@@ -134,7 +133,7 @@ String WemosSonos::getDeviceDesctiptionTagContent(const char *starttag,const cha
     
     //wait if _client not immediately available
     unsigned long starttimer=millis();
-    unsigned long timelimit=5000; //Used to be 12000
+    unsigned long timelimit=5000;
     bool timeout = false;
     while (!_client.available() && !timeout) {
         //wait until _client available
@@ -152,55 +151,48 @@ String WemosSonos::getDeviceDesctiptionTagContent(const char *starttag,const cha
     bool firstLtRead=false;
     bool headerRead=false;
     bool found=false;
-    for (int i=0;i<SNSESP_FILTSIZ-1;i++) {
-      _filtered[i]=' ';
+    for (int i=0;i<SNSESP_BUFSIZ-1;i++) {
+      _response[i]=' ';
     }
-    _filtered[SNSESP_FILTSIZ-1]='\0';
+    _response[SNSESP_BUFSIZ-1]='\0';
   
     while (_client.available()  && !timeout && !found) {
         char c = _client.read();
+        //check for <?xml... before content is read
         if (c=='<' && !firstLtRead) {
             firstLtRead=true;
         }
         if (c=='?' && firstLtRead && !headerRead) {
             headerRead=true;
-            _filtered[SNSESP_FILTSIZ-2]='<';
+            _response[SNSESP_BUFSIZ-2]='<';
             index++;
         }
-        
         if (headerRead) {
+            //header is read, this is xml data
             if ((index % 100)==0) {
-                delay(1); //a short delay (or yield?) needed now and then, otherwise all characters won't be read
+                delay(1); //a short delay needed now and then, otherwise all characters won't be read
             }
+            //a pair of CRLF characters with stray characters in between are sometimes returned by _client.read(). Filter it out before saving it to _response
             if (c=='\r') {
                 if (betweenCR) {
-                    char dropLF=_client.read(); //drop a linefeed \n (10) after CR \r (13) and move on to next character
+                    char dropLF=_client.read(); //drop a linefeed (=new line, LF, \n, ascii 10) after carriage return (=CR, \r, ascii 13) and move on to next character
                 }
                 betweenCR=!betweenCR;
             }
-        
             if (!betweenCR && c!='\r') {
-                memcpy(&_filtered[0], &_filtered[1], SNSESP_FILTSIZ-1);//shift array one step left
-                _filtered[SNSESP_FILTSIZ-2]=c; //add read character at the end
+                //only store response if not between stray CR characters
+                memcpy(&_response[0], &_response[1], SNSESP_BUFSIZ-1);//shift array one step left
+                _response[SNSESP_BUFSIZ-2]=c; //add read character at the end
                 if (c=='>') {
-                    //search for tags
-                    char * startpart=strstr(_filtered,starttag);
-                    char * endpart=strstr(_filtered,endtag);
-
-                    if (startpart!=0 && endpart!=0) {
-                        int startindex=startpart-_filtered+strlen(starttag);
-                        int endindex=endpart-_filtered;
- 
-                        strncpy(_filtered,_filtered+startindex,endindex-startindex);
-                        _filtered[endindex-startindex]='\0';
-                        found=true;
+                    //end of tag is reached, check if it is the tag you are looking for
+                    filter(starttag,endtag);
+                    if (strlen(_filtered)>0) {
+                      found=true;
                     }
-                    
                 }
                 index++;
             }
         }
-        
         if ((millis() - starttimer) > timelimit) {
             timeout=true;
         }
@@ -208,34 +200,14 @@ String WemosSonos::getDeviceDesctiptionTagContent(const char *starttag,const cha
     if (timeout) {
         _client.stop();
     }
-    
     if (!found) {
         _filtered[0]='\0'; //empty string
     }
- 
     return String(_filtered);
 }
-
-/*
-String WemosSonos::roomName(int device) {
-    //this function requires a large _filtered buffer. It has been replaced
-    //by a more economical one
-    
-    const char url[] = "/xml/device_description.xml";
-    deviceInfoRaw(url,device);
-    filter("<roomName>","</roomName>");
-
-    return String(_filtered);
-}
-*/
 
 int WemosSonos::getCoordinator(int device) {
-    const char url[] = "/status/topology";
-
-//    const char starttag[]="<ZonePlayer ";
-//    const char endtag[]="</ZonePlayer>";
-
-    
+    const char url[] = "/status/topology";    
     IPAddress deviceIP = getIpOfDevice(device);
     IPAddress loopIP;
     if (_client.connect(deviceIP, 1400)) {
@@ -249,7 +221,7 @@ int WemosSonos::getCoordinator(int device) {
     
     //wait if _client not immediately available
     unsigned long starttimer=millis();
-    unsigned long timelimit=5000; //Used to be 12000
+    unsigned long timelimit=5000;
     bool timeout = false;
     while (!_client.available() && !timeout) {
         //wait until _client available
@@ -275,6 +247,7 @@ int WemosSonos::getCoordinator(int device) {
       
     while (_client.available()  && !timeout) {
         char c = _client.read();
+        //check for <?xml... before content is read
         if (c=='<' && !firstLtRead) {
             firstLtRead=true;
         }
@@ -285,28 +258,33 @@ int WemosSonos::getCoordinator(int device) {
         }
         
         if (headerRead) {
+            //header is read, this is xml data
             if ((index % 100)==0) {
-                delay(1); //a short delay (or yield?) needed now and then, otherwise all characters won't be read
+                delay(1); //a short delay needed now and then, otherwise all characters won't be read
             }
+            //a pair of CRLF characters with stray characters in between are sometimes returned by _client.read(). Filter it out before saving it to _response
             if (c=='\r') {
                 if (betweenCR) {
-                    char dropLF=_client.read(); //drop a linefeed \n (10) after CR \r (13) and move on to next character
+                    char dropLF=_client.read(); //drop a linefeed (=new line, LF, \n, ascii 10) after carriage return (=CR, \r, ascii 13) and move on to next character
                 }
                 betweenCR=!betweenCR;
             }
         
             if (!betweenCR && c!='\r') {
+                //only store response if not between stray CR characters
                 memcpy(&_response[0], &_response[1], SNSESP_BUFSIZ-1);//shift array one step left
                 _response[SNSESP_BUFSIZ-2]=c; //add read character at the end
                 if (c=='>') {
-                    
-                    filter("<ZonePlayer ","</ZonePlayer>");
-                    
+                    //end of a tag is reached, look if it is ZonePlayer tag
+                    filter("<ZonePlayer ","</ZonePlayer>"); //not "<ZonePlayer>" but "<ZonePlayer " because the tag is followed by arguments
                     if (strlen(_filtered)>0) {
+                        //check for location, group and coordinator argument for each ZonePlayer. 
                         foundDevices++;
                         //copy back filtered to response as it will be further filtered
-                        strcpy(_response,_filtered);    
+                        strcpy(_response,_filtered);
+                        //find IP of found ZonePlayer in topology
                         filter("location='http://",":1400");
+                        //find device number of found ZonePlayer
                         int loopDeviceNumber=-1;
                         bool found=false;
                         for (int i=0;i<getNumberOfDevices() && !found;i++) {
@@ -316,7 +294,7 @@ int WemosSonos::getCoordinator(int device) {
                             }
                         }
                         
-                        
+                        //add group and coordinator for found ZonePlayer
                         filter("group='","'");
                         _group[loopDeviceNumber]=String(_filtered);
                         filter("coordinator='","'");
@@ -341,6 +319,7 @@ int WemosSonos::getCoordinator(int device) {
         _client.stop();
     }
     
+    //go through list of all players in topology to find who is the coordinator for current device
     for (int thisDevice=0;thisDevice<getNumberOfDevices();thisDevice++) {        
         _myCoordinator[thisDevice]=-1;
         if (!_isCoordinator[thisDevice]) {
@@ -352,11 +331,9 @@ int WemosSonos::getCoordinator(int device) {
         }
     }
     
- 
-    return _myCoordinator[device];
+    //return -1 if no coordinator
+    return _myCoordinator[device]; 
 }
-
-
 
 void WemosSonos::sonosAction(const char *url, const char *service, const char *action, const char *arguments,int device) {
     //length of response typically 400-600 characters
@@ -474,7 +451,7 @@ int WemosSonos::discoverSonos(int timeout){
 bool WemosSonos::addIp(IPAddress ip) {
     bool found=false;
     bool added=false;
-    if (_numberOfDevices<SNSESP_MAXNROFDEVICES) { //must agree with definition of global array _deviceIPs
+    if (_numberOfDevices<SNSESP_MAXNROFDEVICES) {
         for (int i=0;i<_numberOfDevices && !found;i++) {
             if (ip==_deviceIPs[i]) {
                 found=true;     
@@ -490,15 +467,12 @@ bool WemosSonos::addIp(IPAddress ip) {
     return added;
 }
 
-
 IPAddress WemosSonos::getIpOfDevice(int device) {
-    return _deviceIPs[device];
-    //IPAddress x=_deviceIPs[0];
+  return _deviceIPs[device];
 }
 
-
 int WemosSonos::getNumberOfDevices() {
-    return _numberOfDevices;
+  return _numberOfDevices;
 }
 
 IPAddress WemosSonos::string2ip(const char *s) {
