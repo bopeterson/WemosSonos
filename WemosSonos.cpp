@@ -2,10 +2,6 @@
 #include "WemosSonos.h"
 #include<string.h>
 
-//ha ett compiledirektiv som bara tar med getdeviceinfo och lång _resultbuffer om man vill
-//fast den kanske behövs för att kolla controllers......
-
-
 WemosSonos::WemosSonos() {
     _numberOfDevices=0;
 }
@@ -33,7 +29,6 @@ void WemosSonos::play(int device) {
     const char arguments[] = "<InstanceID>0</InstanceID><Speed>1</Speed>";
     sonosAction(url,service,action,arguments,device);
 }
-
 
 byte WemosSonos::getVolume(int device) {
     //returns zero at timeout
@@ -64,7 +59,6 @@ String WemosSonos::getTransportInfo(int device) {
     const char service[] = "AVTransport:1";
     const char action[] = "GetTransportInfo";
     const char arguments[] = "<InstanceID>0</InstanceID>";
-    
     sonosAction(url,service,action,arguments,device);
     filter("<CurrentTransportState>","</CurrentTransportState>");
     while(strcmp(_filtered,"TRANSITIONING")==0) {
@@ -96,7 +90,7 @@ void WemosSonos::filter(const char *starttag,const char *endtag) {
     char * startpart=strstr(_response,starttag);
     char * endpart;
     if (startpart!=0) {
-        //check for endtag if starttag exists
+      //check for endtag if starttag exists
       endpart=strstr(startpart+strlen(starttag),endtag);
     }
     int startindex=startpart-_response+strlen(starttag);
@@ -108,7 +102,6 @@ void WemosSonos::filter(const char *starttag,const char *endtag) {
         _filtered[0]='\0'; //empty string
     }
 }
-
 
 void WemosSonos::setVolume(byte vol,int device) {
     const char url[] = "/RenderingControl/Control";
@@ -160,10 +153,10 @@ String WemosSonos::getDeviceDesctiptionTagContent(const char *starttag,const cha
     bool headerRead=false;
     bool found=false;
     for (int i=0;i<SNSESP_FILTSIZ-1;i++) {
-      _filtered[i];
+      _filtered[i]=' ';
     }
     _filtered[SNSESP_FILTSIZ-1]='\0';
-      
+  
     while (_client.available()  && !timeout && !found) {
         char c = _client.read();
         if (c=='<' && !firstLtRead) {
@@ -364,80 +357,6 @@ int WemosSonos::getCoordinator(int device) {
 }
 
 
-void WemosSonos::deviceInfoRaw(const char *url,int device) {
-    //this one requires a large size of _response. avoid this
-    //because _response size is too small
-    IPAddress deviceIP = getIpOfDevice(device);
-    if (_client.connect(deviceIP, 1400)) {
-        _client.print("GET ");
-        _client.print(url); //skiljer
-        _client.println(" HTTP/1.1");
-        _client.print("Host: ");
-        _client.println(deviceIP); //note: device is of type IPAddress which converts to int
-        //_client.println("Connection: close");
-        _client.println("");
-    }
-    
-    //wait if _client not immediately available
-    unsigned long starttimer=millis();
-    unsigned long timelimit=5000; //Used to be 12000
-    bool timeout = false;
-    while (!_client.available() && !timeout) {
-        //wait until _client available
-        delay(100);
-        if ((millis() - starttimer) > timelimit) {
-            timeout=true;
-        }
-    }
-    //timeout shall keep current state for the coming while-loop. Only starttimer should be updated
-
-    timelimit=10000;
-    starttimer=millis();
-    int index=0;
-    bool betweenCR=false;
-    bool firstLtRead=false;
-    bool headerRead=false;
-    while (_client.available()  && !timeout) {
-        char c = _client.read();
-        if (c=='<' && !firstLtRead) {
-            firstLtRead=true;
-        }
-        if (c=='?' && firstLtRead && !headerRead) {
-            headerRead=true;
-            _response[index]='<';
-            index++;
-        }
-        
-        if (headerRead) {
-            if ((index % 100)==0) {
-                delay(1); //a short delay (or yield?) needed now and then, otherwise all characters won't be read
-            }
-            if (c=='\r') {
-                if (betweenCR) {
-                    char dropLF=_client.read(); //drop a linefeed \n (10) after CR \r (13) and move on to next character
-                }
-                betweenCR=!betweenCR;
-            }
-        
-            if (!betweenCR && c!='\r') {
-                _response[index]=c;
-                index++;
-                if (index >= SNSESP_BUFSIZ) { 
-                    index = SNSESP_BUFSIZ-1;
-                }
-            }
-        }
-        
-        if ((millis() - starttimer) > timelimit) {
-            timeout=true;
-        }
-    }
-    if (timeout) {
-        _client.stop();
-    }
-    
-    _response[index]='\0'; //end of string
-}
 
 void WemosSonos::sonosAction(const char *url, const char *service, const char *action, const char *arguments,int device) {
     //length of response typically 400-600 characters
@@ -603,5 +522,79 @@ IPAddress WemosSonos::string2ip(const char *s) {
   return(ipad);
 }
 
+/*
+void WemosSonos::deviceInfoRaw(const char *url,int device) {
+    //disabled - requires too much memory. 
+    //use getDeviceDesctiptionTagContent instead
+    IPAddress deviceIP = getIpOfDevice(device);
+    if (_client.connect(deviceIP, 1400)) {
+        _client.print("GET ");
+        _client.print(url);
+        _client.println(" HTTP/1.1");
+        _client.print("Host: ");
+        _client.println(deviceIP); //note: device is of type IPAddress which converts to int
+        //_client.println("Connection: close");
+        _client.println("");
+    }
+    
+    //wait if _client not immediately available
+    unsigned long starttimer=millis();
+    unsigned long timelimit=5000; //Used to be 12000
+    bool timeout = false;
+    while (!_client.available() && !timeout) {
+        //wait until _client available
+        delay(100);
+        if ((millis() - starttimer) > timelimit) {
+            timeout=true;
+        }
+    }
+    //timeout shall keep current state for the coming while-loop. Only starttimer should be updated
 
-
+    timelimit=10000;
+    starttimer=millis();
+    int index=0;
+    bool betweenCR=false;
+    bool firstLtRead=false;
+    bool headerRead=false;
+    while (_client.available()  && !timeout) {
+        char c = _client.read();
+        if (c=='<' && !firstLtRead) {
+            firstLtRead=true;
+        }
+        if (c=='?' && firstLtRead && !headerRead) {
+            headerRead=true;
+            _response[index]='<';
+            index++;
+        }
+        
+        if (headerRead) {
+            if ((index % 100)==0) {
+                delay(1); //a short delay (or yield?) needed now and then, otherwise all characters won't be read
+            }
+            if (c=='\r') {
+                if (betweenCR) {
+                    char dropLF=_client.read(); //drop a linefeed \n (10) after CR \r (13) and move on to next character
+                }
+                betweenCR=!betweenCR;
+            }
+        
+            if (!betweenCR && c!='\r') {
+                _response[index]=c;
+                index++;
+                if (index >= SNSESP_BUFSIZ) { 
+                    index = SNSESP_BUFSIZ-1;
+                }
+            }
+        }
+        
+        if ((millis() - starttimer) > timelimit) {
+            timeout=true;
+        }
+    }
+    if (timeout) {
+        _client.stop();
+    }
+    
+    _response[index]='\0'; //end of string
+}
+*/
