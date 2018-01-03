@@ -10,25 +10,19 @@
 
 */
 
-/* instructions fot setup:
-
-press and hold button for 5 seconds
-connect a computer or phone to the wifi network "configure"
-browse to http://192.168.4.1
-connect to the wifi network with sonos devices
-select which sonos device you want to control
-switch back your computer to your normal wifi network
-finished!
- */
-
 #include <WemosButton.h>
 #include <WemosSonos.h>
 #include <WemosSetup.h>
+
 
 #include "settings.h"
 
 //length must not exceed WFS_MAXBODYLENGTH in WemosSetup.cpp, currently 1500
 #define MAXBODYCHLENGTH 1024
+
+//this is for sending stats to server for testing reliability, should be deleted xxx
+#include <ESP8266HTTPClient.h>
+HTTPClient http;
 
 int noOfDiscoveries = 0;
 bool discoveryInProgress = false;
@@ -41,11 +35,15 @@ const char compiledate[] = __DATE__;
 WemosSetup wifisetup;
 WemosSonos sonos;
 WemosButton knobButton;
+//WemosButton testButton;
 
-
-const unsigned long checkRate =  1000 * 30; //how often main loop performs periodical task. NOTE-this also updates read volume
+const unsigned long checkRate = 15 * 1000; //how often main loop performs periodical task
 unsigned long lastPost = 0;
 int discoverSonosTimeout = 9; //seconds
+
+//this is for sending stats to server for testing reliability, should be deleted xxx
+const unsigned long logRate = 6 * 60 * 60 * 1000; //log 4 times a day
+unsigned long lastLog = 0;
 
 //encoder variables
 const int pinA = D3;  // Connected to CLK on KY-040
@@ -60,23 +58,25 @@ int oldVolume; //used for readKnob
 
 unsigned long periodicLast = 0;
 
-
-String roomNames[SNSESP_MAXNROFDEVICES];
-
 void setup() {
+
+  
+  
   settings.load();
   knobButton.begin(D6);
+  //testButton.begin(D5);
 
   Serial.begin(115200);
-  wfs_debugprintln("");
-  wfs_debugprint("compiletime: ");
-  wfs_debugprint(compiletime);
-  wfs_debugprint(" ");
-  wfs_debugprintln(compiledate);
+  Serial.println("");
+  Serial.print("compiletime: ");
+  Serial.print(compiletime);
+  Serial.print(" ");
+  Serial.println(compiledate);
 
   //testing settings
-  wfs_debugprint("Saved room name: ");
-  wfs_debugprintln(settings.roomname);
+  Serial.print("Saved room name>>>");
+  Serial.print(settings.roomname);
+  Serial.println("<<<");
 
   //encoder setup
   pinMode (pinA, INPUT);
@@ -110,12 +110,17 @@ void setup() {
   if (wifisetup.connected()) {
     discoverSonos(discoverSonosTimeout);
   }
+  Serial.println("entering main loop");
+
+
+
 }
 
 void loop() {
   unsigned long loopStart = millis();
 
   wifisetup.inLoop();
+
 
   //do a new search if saved room wasn't dicovered in setup
   if (device == -1 && settings.roomname != "" && noOfDiscoveries != 0) {
@@ -131,109 +136,84 @@ void loop() {
   if (timeToFirstDiscovery != 0) {
     if (noOfDiscoveries == 0 && millis() > timeToFirstDiscovery) {
       timeToFirstDiscovery = 0;
-      wfs_debugprintln("discover sonos 2 (in main loop)");
+      Serial.println("discover sonos 2 (in main loop)");
       discoverSonos(discoverSonosTimeout);
     }
   }
 
+//this is for sending stats to server for testing reliability, should be deleted xxx
+  if (lastLog + logRate <= loopStart) {
+    lastLog = loopStart;
+    String logurl = "http://djallo.se/sonos/log.php?vol=";
+    logurl += oldVolume;
+    logurl += "&room=";
+    logurl += sonos.roomName(device);
+    http.begin(logurl);
+    int httpCode = http.GET();
+    if (httpCode > 0 && httpCode == HTTP_CODE_OK) {
+      String payload = http.getString();
+      Serial.println(payload);
+    } else {
+      Serial.print("error: ");
+      Serial.print(httpCode);
+    }
+    http.end();
+  }
+//this is for sending stats to server for testing reliability, should be deleted xxx
+
+
   if (lastPost + checkRate <= loopStart) {
     lastPost = loopStart;
     //put any code here that should run periodically
-      wifisetup.printInfo();
-  
-    //update oldVolume regularly, as other devices might change the volume as well
-    if (device >= 0) {
+
+   if (device >= 0) {
       oldVolume = sonos.getVolume(device);
     }
+ 
+    wifisetup.printInfo();
+    Serial.print("Device ");
+    Serial.print(device);
+    if (device >= 0 && wifisetup.connected()) {
+      Serial.print(" ");
+      Serial.print(sonos.roomName(device));
+      Serial.print(" ");
+      Serial.println(sonos.getIpOfDevice(device));
+      Serial.print("Volume: ");
+      Serial.print(oldVolume);
+    }
+    Serial.println("");
+    Serial.println("");
+
+    //update oldVolume regularly, as other devices might change the volume as well
   }
 
-  //check if knob has been turned
   oldVolume = readKnob(oldVolume);
 
   byte knobButtonStatus = knobButton.readButtonAdvanced(5000);
   if ((knobButtonStatus & knobButton.HOLD_DETECTED)) {
-    wfs_debugprintln("hold detected");
+    Serial.println("hold detected");
     wifisetup.switchToAP_STA();
     wifisetup.timeToChangeToSTA = millis() + 5 * 60 * 1000;
   } else if (knobButtonStatus & knobButton.PRESS_DETECTED) {
-    wfs_debugprintln("button pressed");
+    Serial.println("button pressed");
     if (device >= 0) {
-      togglePlay(device);
-    }
-  }
-} //loop
-
-void togglePlay(int device) {
-  //if the device is a stand alone device, togglePlay is as simple as checking transport info.
-  //If it is playing, pause it, if not, play it. However, if the device is controlled by a
-  //coordinator, it is much more complicated. The procedure below starts to assume that the
-  //device is stand alone, and tries to pause or play. If it does not work, it checks for
-  //the coordiniator, and pauses or plays the coordinator instead. Each step is explained.
-
-  //step 1: check transport info of device
-  String deviceTransportInfo = sonos.getTransportInfo(device);
-  String deviceTransportInfoAfter;
-  String coordinatorTransportInfo;
-
-  //step 2: check if status is playing
-  if (deviceTransportInfo == "PLAYING") {
-    //step 3: try to pause device if it is playing
-    sonos.pause(device);
-    deviceTransportInfoAfter = sonos.getTransportInfo(device);
-    if (deviceTransportInfoAfter == "PAUSED_PLAYBACK") {
-      //step 4: if it succeded, everything is done
-    } else {
-      //step 5: if not, check who is the coordinator
-      int coordinator = sonos.getCoordinator(device);
-      //step 6: check transport info of coordinator
-      if (coordinator >= 0) {
-        coordinatorTransportInfo = sonos.getTransportInfo(coordinator);
+      if (sonos.getTransportInfo(device) == "PLAYING") {
+        sonos.pause(device);
+        //Serial.println("PAUSE DISABLED");
       } else {
-        coordinatorTransportInfo = "UNKNOWN";
-      }
-      if (coordinatorTransportInfo == "PLAYING") {
-        //step 7: pause coordinator if it is playing
-        sonos.pause(coordinator);
-      } else  if (coordinatorTransportInfo == "PAUSED_PLAYBACK" || coordinatorTransportInfo == "STOPPED") {
-        //step 8: play coordinator instead, if it is paused or stopped
-        sonos.play(coordinator);
+        sonos.play(device);
+        //Serial.println("PLAY DISABLED");
       }
     }
-  } else if (deviceTransportInfo == "PAUSED_PLAYBACK") {
-    //step 9: try to play device if it is paused
-    sonos.play(device);
-    deviceTransportInfoAfter = sonos.getTransportInfo(device);
-    if (deviceTransportInfoAfter == "PLAYING") {
-      //step 10: if it succeded, everything is done 
-    } else {
-      //step 11: if not, something probably went wrong, maybe there is no queue to play
-    }
-  } else if (deviceTransportInfo == "STOPPED") {
-    //step 12: try to play device if is stopped
-    sonos.play(device);
-    //step 13: check if device has coordinator, because it must play too
-    int coordinator = sonos.getCoordinator(device);
-    if (coordinator < 0) {
-      //step 14: if there is NO coordinator, everything is done
-      //done, no need to do anything
-    } else {
-      //step 15: check transport info of coordinator if ther is one
-      coordinatorTransportInfo = sonos.getTransportInfo(coordinator);
-      if (coordinatorTransportInfo == "PLAYING") {
-        //step 16: if coordinator is playing, everything is done. However, it might take several minutes before the device starts playing
-      } else if (coordinatorTransportInfo == "PAUSED_PLAYBACK" || coordinatorTransportInfo == "STOPPED") {
-        //step 17. play coordinator if it paused or stopped
-        sonos.play(coordinator);
-      }
-    }
-  } else {
-    //step 18: something went wrong, this should not happen
   }
+
+//  if (testButton.readButton()) {
+//    clearSettings(); //only for test
+//  }
 }
 
 void clearSettings() {
-  //fot testing
-  wfs_debugprintln("Clearing settings");
+  Serial.println("Clearing settings");
   settings.roomname = "";
   settings.roomno = -1;
   device = -1;
@@ -244,7 +224,7 @@ void clearSettings() {
 }
 
 void handleSearch() {
-  wfs_debugprintln("handleSearch - searches for Sonos devices");
+  Serial.println("handleSearch - searches for Sonos devices");
 
   long reloadTime = discoverSonosTimeout * 1000 + 4000 + 5000;
   sprintf(wifisetup.onload, "i1=setInterval(function() {location.href='/setup';},%i)", reloadTime);
@@ -254,13 +234,13 @@ void handleSearch() {
   for (int i = 0; i < 2000; i++) { //2000 takes ca 4 s xxx could be made into a delay function
     wifisetup.inLoop();
   }
-  wfs_debugprintln("discover sonos 3 (in handleSearch)");
+  Serial.println("discover sonos 3 (in handleSearch)");
   discoverSonos(discoverSonosTimeout);
   wifisetup.timeToChangeToSTA = millis() + 10 * 60 * 1000;
 }
 
 void handleSetup() {
-  wfs_debugprintln("handleSetup");
+  Serial.println("handleSetup");
   char bodych[MAXBODYCHLENGTH];
   int selectedDevice = -1;
 
@@ -269,16 +249,16 @@ void handleSetup() {
     device = roomStr.toInt();
 
     if (device >= 0 && sonos.getNumberOfDevices() > device) {
-      settings.roomname = roomNames[device];
-      wfs_debugprintln(settings.roomname);
-      wfs_debugprint("Saving settings... ");
+      settings.roomname = sonos.roomName(device);
+      Serial.println(settings.roomname);
+      Serial.print("Saving settings... ");
       settings.save();
     }
 
     wifisetup.timeToChangeToSTA = millis() + 5 * 60 * 1000;
 
-    wfs_debugprint("setting device to ");
-    wfs_debugprintln(device);
+    Serial.print("setting device to ");
+    Serial.println(device);
   }
 
   String body;
@@ -303,8 +283,8 @@ void handleSetup() {
     body = body + "<p>Click to select Sonos device: <ul>";
     for (int i = 0; i < sonos.getNumberOfDevices(); i++) {
       if (body.length() < MAXBODYCHLENGTH - 300) { //truncate if very many devices
-        body = body + "<li><a href=setup?room=" + i + ">" + roomNames[i] + "</a>";
-        if (roomNames[i] == settings.roomname && roomNames[i] != "") {
+        body = body + "<li><a href=setup?room=" + i + ">" + sonos.roomName(i) + "</a>";
+        if (sonos.roomName(i) == settings.roomname && sonos.roomName(i) != "") {
           body = body + " (selected)";
           selectedDevice = i;
         }
@@ -328,28 +308,26 @@ void discoverSonos(int timeout) {
   if (!discoveryInProgress) {
     discoveryInProgress = true;
     noOfDiscoveries++;
-    wifisetup.stopWebServer();//unpredicted behaviour if weserver contacted during discovery multicast
-    wfs_debugprintln("discover sonos in library");
+    wifisetup.stopWebServer();//unpredicted behaviour if weserver contaced during discovery multicast
+    Serial.println("discover sonos in library");
     sonos.discoverSonos(timeout);
     wifisetup.startWebServer();
-    wfs_debugprint("Found devices: ");
-    wfs_debugprintln(sonos.getNumberOfDevices());
+    Serial.print("Found devices: ");
+    Serial.println(sonos.getNumberOfDevices());
     for (int i = 0; i < sonos.getNumberOfDevices(); i++) {
-      wfs_debugprint("Device ");
-      wfs_debugprint(i);
-      wfs_debugprint(": ");
-      wfs_debugprint(sonos.getIpOfDevice(i));
-      wfs_debugprint(" ");
-      String roomName = sonos.roomName(i);
-      roomNames[i] = roomName;
-      wfs_debugprint(roomName);
-      if (roomName == settings.roomname && roomName != "") {
-        wfs_debugprint(" *");
+      Serial.print("Device ");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.print(sonos.getIpOfDevice(i));
+      Serial.print(" ");
+      Serial.print(sonos.roomName(i));
+      if (sonos.roomName(i) == settings.roomname && sonos.roomName(i) != "") {
+        Serial.print(" *");
         device = i;
       }
-      wfs_debugprintln("");
+      Serial.println("");
     }
-    wfs_debugprintln("discoverReady");
+    Serial.println("discoverReady");
     //wifisetup.startWebServer();
     discoveryInProgress = false;
   }
@@ -373,8 +351,8 @@ int readKnob(int oldVolume) {
       encoderRelativeCount--;
     }
 
-    wfs_debugprint("Encoder Position: ");
-    wfs_debugprintln(encoderPosCount);
+    Serial.print("Encoder Position: ");
+    Serial.println(encoderPosCount);
 
   }
   pinALast = aVal;
@@ -388,12 +366,12 @@ int readKnob(int oldVolume) {
     }
     newVolume = constrain(newVolume, 0, 100);
 
-    wfs_debugprint("Encoder change: ");
-    wfs_debugprintln(encoderRelativeCount);
-    wfs_debugprint("Volume change;  ");
-    wfs_debugprintln(newVolume - oldVolume);
-    wfs_debugprint("Volume:         ");
-    wfs_debugprintln(newVolume);
+    Serial.print("Encoder change: ");
+    Serial.println(encoderRelativeCount);
+    Serial.print("Volume change;  ");
+    Serial.println(newVolume - oldVolume);
+    Serial.print("Volume:         ");
+    Serial.println(newVolume);
     if (device >= 0) {
       sonos.setVolume(newVolume, device);
     }
