@@ -2,12 +2,18 @@
 #define WemosSonos_h
 
 #include "Arduino.h"
-#include <ESP8266WiFi.h>
+
+#ifdef ESP32
+  #include <WiFi.h>
+#else
+  #include <ESP8266WiFi.h>
+#endif
+
 #include <WiFiUDP.h>
 
 #define SNSESP_BUFSIZ 2048
 
-//a much larger buffer is needed, about 15k, if deviceInfoRaw is used. 
+//a much larger buffer is needed, about 15k, if deviceInfoRaw is used.
 //#define SNSESP_BUFSIZ 15000
 
 #define SNSESP_FILTSIZ 1024
@@ -16,7 +22,7 @@
 class WemosSonos {
   public:
     WemosSonos();
-    void removeAllTracksFromQueue(int device); 
+    void removeAllTracksFromQueue(int device);
     void pause(int device);
     void stop(int device);
     void play(int device);
@@ -49,4 +55,3 @@ class WemosSonos {
 };
 
 #endif
-
